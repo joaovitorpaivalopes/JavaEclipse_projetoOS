@@ -8,12 +8,16 @@ import java.awt.Font;
 import java.awt.SystemColor;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -28,6 +32,9 @@ public class CadastroServicos extends JFrame {
 	private boolean isAdmin;
 	private JTextField textField;
 	private JTextField textField_1;
+    private String nomeUsuario;
+    private JTextArea txtAreaDeDescricaoOS;
+
 
 	/**
 	 * Launch the application.
@@ -39,7 +46,8 @@ public class CadastroServicos extends JFrame {
 					ConexaoBanco dao = new ConexaoBanco();
 	                int userId = 1; 
 	                boolean isAdmin = dao.isAdmin(userId);
-					CadastroServicos frame = new CadastroServicos(isAdmin);
+                    String nomeUsuario = dao.getNomeUsuario(userId); 
+					CadastroServicos frame = new CadastroServicos(isAdmin, nomeUsuario);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -48,9 +56,13 @@ public class CadastroServicos extends JFrame {
 		});
 	}
 
-	public CadastroServicos(boolean isAdmin) {
+	public CadastroServicos(boolean isAdmin, String nomeUsuario) {
         this.isAdmin = isAdmin;
+        this.nomeUsuario = nomeUsuario; 
+
         Design();
+        
+
     }
 	
 	
@@ -89,7 +101,7 @@ public class CadastroServicos extends JFrame {
         
         contentPane.add(panel_1);
         
-        JLabel lblUsuario = new JLabel("Nome Usuario");
+        JLabel lblUsuario = new JLabel(nomeUsuario);
         lblUsuario.setFont(new Font("Tahoma", Font.PLAIN, 20));
         lblUsuario.setForeground(SystemColor.text);
         lblUsuario.setBounds(1135, 11, 217, 42);
@@ -127,7 +139,7 @@ public class CadastroServicos extends JFrame {
         btnCadastrar.setBounds(195, 514, 246, 49);
         btnCadastrar.setBackground(new Color(107, 132, 142));
 		panel.add(btnCadastrar);
-		 btnCadastrar.addMouseListener(new MouseAdapter() {
+		btnCadastrar.addMouseListener(new MouseAdapter() {
 	        	@Override
 	        	public void mouseEntered(MouseEvent e) {
 	        		btnCadastrar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -136,6 +148,10 @@ public class CadastroServicos extends JFrame {
 	        	public void mouseExited(MouseEvent e) {
 	        		btnCadastrar.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	        	}
+		 	@Override
+		 	public void mouseClicked(MouseEvent e) {
+		 		cadastrarOrdemServico();
+		 	}
 	        });
 		
 		textField = new JTextField();
@@ -162,16 +178,21 @@ public class CadastroServicos extends JFrame {
 		panel.add(textField_1);
 		textField_1.setColumns(10);
 		
-		JLabel lblNewLabel_2 = new JLabel("New label");
+		JLabel lblNewLabel_2 = new JLabel("Descrição do Serviço:");
 		lblNewLabel_2.setForeground(SystemColor.text);
 		lblNewLabel_2.setFont(new Font("Tahoma", Font.PLAIN, 20));
-		lblNewLabel_2.setBounds(40, 245, 162, 24);
+		lblNewLabel_2.setBounds(40, 245, 192, 24);
 		panel.add(lblNewLabel_2);
 		
-		JTextArea textArea = new JTextArea();
-		textArea.setFont(new Font("Monospaced", Font.PLAIN, 16));
-		textArea.setBounds(40, 289, 544, 148);
-		panel.add(textArea);
+		txtAreaDeDescricaoOS = new JTextArea();
+		txtAreaDeDescricaoOS.setFont(new Font("Monospaced", Font.PLAIN, 16));
+		txtAreaDeDescricaoOS.setBounds(40, 289, 544, 148);
+		txtAreaDeDescricaoOS.setLineWrap(true); // Quebra automática de linha
+	    txtAreaDeDescricaoOS.setWrapStyleWord(true); // Quebra entre palavras
+
+	    JScrollPane scrollPane = new JScrollPane(txtAreaDeDescricaoOS);
+	    scrollPane.setBounds(40, 289, 544, 148);
+	    panel.add(scrollPane);		
 		
 		JLabel lblCadastrarCliente = new JLabel("Cadastrar Cliente");
 		lblCadastrarCliente.setForeground(SystemColor.text);
@@ -181,7 +202,7 @@ public class CadastroServicos extends JFrame {
 		lblCadastrarCliente.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				CadastroClientes CadastroClientes = new CadastroClientes(isAdmin);
+				CadastroClientes CadastroClientes = new CadastroClientes(isAdmin, nomeUsuario);
 				CadastroClientes.setVisible(true);
 				dispose(); 
 			}
@@ -199,7 +220,7 @@ public class CadastroServicos extends JFrame {
 		lblServicos.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Principal Principal = new Principal(isAdmin);
+				Principal Principal = new Principal(isAdmin, nomeUsuario);
 				Principal.setVisible(true);
 				dispose(); 
 			}
@@ -249,7 +270,7 @@ public class CadastroServicos extends JFrame {
             lblCadastrarFuncionario.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                	CadastrarFuncionarios CadastrarFuncionarios = new CadastrarFuncionarios(isAdmin);
+                	CadastrarFuncionarios CadastrarFuncionarios = new CadastrarFuncionarios(isAdmin, nomeUsuario);
                 	CadastrarFuncionarios.setVisible(true);
     				dispose();   				
                 }
@@ -265,6 +286,91 @@ public class CadastroServicos extends JFrame {
         } else {
             lblCadastrarFuncionario.setVisible(false);
         }
+		JLabel lblFuncionarios = new JLabel("Funcionarios");
+		lblFuncionarios.setForeground(SystemColor.text);
+		lblFuncionarios.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		lblFuncionarios.setBounds(1193, 87, 159, 42);
+		contentPane.add(lblFuncionarios);
+		if (isAdmin) {
+			lblFuncionarios.setVisible(true);
+			lblFuncionarios.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					Funcionarios Funcionarios = new Funcionarios(isAdmin, nomeUsuario);
+					Funcionarios.setVisible(true);
+					dispose();
+				}
+				@Override
+				public void mouseEntered(MouseEvent e) {
+					lblFuncionarios.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				}
+				@Override
+				public void mouseExited(MouseEvent e) {
+					lblFuncionarios.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+				}
+			});
+		 } else {
+			 lblFuncionarios.setVisible(false);
+	        }
 		
 	}
+	
+	private void cadastrarOrdemServico() {
+        String nomeCliente = textField.getText();
+        String tipoServico = textField_1.getText();
+        String descricaoServico = txtAreaDeDescricaoOS.getText();
+        int idSituacaoInicial = 1; // Aguardando aprovação
+
+        if (nomeCliente.isEmpty() || tipoServico.isEmpty() || descricaoServico.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Por favor, preencha todos os campos.");
+            return;
+        }
+
+        ConexaoBanco dao = new ConexaoBanco();
+        Connection con = null;
+
+        try {
+            con = dao.conectar();
+
+            // Buscar o ID do cliente baseado no nome
+            String sqlCliente = "SELECT id_user FROM usuarios WHERE nome = ?";
+            try (PreparedStatement stmtCliente = con.prepareStatement(sqlCliente)) {
+                stmtCliente.setString(1, nomeCliente);
+                try (ResultSet rsCliente = stmtCliente.executeQuery()) {
+                    if (rsCliente.next()) {
+                        int idCliente = rsCliente.getInt("id_user");
+
+                        // Inserir a nova Ordem de Serviço
+                        String sqlInserirOS = "INSERT INTO ordens_de_servico (id_cliente, tipo, descricao, id_situacao) VALUES (?, ?, ?, ?)";
+                        try (PreparedStatement stmtInserirOS = con.prepareStatement(sqlInserirOS)) {
+                            stmtInserirOS.setInt(1, idCliente);
+                            stmtInserirOS.setString(2, tipoServico);
+                            stmtInserirOS.setString(3, descricaoServico);
+                            stmtInserirOS.setInt(4, idSituacaoInicial);
+
+                            int rowsAffected = stmtInserirOS.executeUpdate();
+
+                            if (rowsAffected > 0) {
+                                JOptionPane.showMessageDialog(null, "Ordem de Serviço cadastrada com sucesso!");
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Erro ao cadastrar Ordem de Serviço.");
+                            }
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Cliente não encontrado.");
+                    }
+                }
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Erro ao conectar com o banco de dados.");
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
 }

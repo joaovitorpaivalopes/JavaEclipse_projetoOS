@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class ConexaoBanco {
 	
@@ -23,6 +24,25 @@ public class ConexaoBanco {
 			return null;
 		}
 	}
+	public boolean cadastrarCliente(String nome, String endereco, String telefone) {
+        String sql = "INSERT INTO usuarios (nome, endereco, telefone) VALUES (?, ?, ?)";
+
+        try (Connection con = this.conectar();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+
+            stmt.setString(1, nome);
+            stmt.setString(2, endereco);
+            stmt.setString(3, telefone);
+
+            int rowsAffected = stmt.executeUpdate();
+
+            return rowsAffected > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 	
 	public boolean isAdmin(int userId) {
         boolean isAdmin = false;
@@ -39,6 +59,24 @@ public class ConexaoBanco {
             e.printStackTrace();
         }
         return isAdmin;
+    }
+	
+	public String getNomeUsuario(int userId) {
+        String nomeUsuario = null;
+        String sql = "SELECT nome FROM usuarios WHERE id_user = ?";
+
+        try (Connection conec = conectar(); PreparedStatement stmt = conec.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();            
+            if (rs.next()) {
+                nomeUsuario = rs.getString("nome");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return nomeUsuario;
+
     }
 	
 	

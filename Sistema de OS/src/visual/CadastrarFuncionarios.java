@@ -8,6 +8,9 @@ import java.awt.Font;
 import java.awt.SystemColor;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -29,6 +32,8 @@ public class CadastrarFuncionarios extends JFrame {
 	private JTextField txtLogin;
 	private JTextField txtSenha;
 	private JTextField txtConSenha;
+    private String nomeUsuario;
+
 
 	/**
 	 * Launch the application.
@@ -40,7 +45,8 @@ public class CadastrarFuncionarios extends JFrame {
 					ConexaoBanco dao = new ConexaoBanco();
 	                int userId = 1; // Exemplo de ID do usuário logado
 	                boolean isAdmin = dao.isAdmin(userId);
-					CadastrarFuncionarios frame = new CadastrarFuncionarios(isAdmin);
+	                String nomeUsuario = dao.getNomeUsuario(userId); 
+					CadastrarFuncionarios frame = new CadastrarFuncionarios(isAdmin, nomeUsuario);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -49,8 +55,10 @@ public class CadastrarFuncionarios extends JFrame {
 		});
 	}
 
-	public CadastrarFuncionarios(boolean isAdmin) {
+	public CadastrarFuncionarios(boolean isAdmin, String nomeUsuario) {
         this.isAdmin = isAdmin;
+        this.nomeUsuario = nomeUsuario; 
+
 		Design();
 	}
 	
@@ -89,7 +97,7 @@ public class CadastrarFuncionarios extends JFrame {
 
         contentPane.add(panel_1);
         
-        JLabel lblUsuario = new JLabel("Nome Usuario");
+        JLabel lblUsuario = new JLabel(nomeUsuario);
         lblUsuario.setFont(new Font("Tahoma", Font.PLAIN, 20));
         lblUsuario.setForeground(SystemColor.text);
         lblUsuario.setBounds(1135, 11, 217, 42);
@@ -135,6 +143,10 @@ public class CadastrarFuncionarios extends JFrame {
 	        	public void mouseExited(MouseEvent e) {
 	        		btnCadastrar.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	        	}
+		 	@Override
+		 	public void mouseClicked(MouseEvent e) {
+		 		 cadastrarFuncionario();
+		 	}
 	        });
 		
 		txtFuncionario = new JTextField();
@@ -194,7 +206,7 @@ public class CadastrarFuncionarios extends JFrame {
 		lblCadastrarCliente.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				CadastroClientes CadastroClientes = new CadastroClientes(isAdmin);
+				CadastroClientes CadastroClientes = new CadastroClientes(isAdmin, nomeUsuario);
 				CadastroClientes.setVisible(true);
 				dispose(); 
 			}
@@ -216,7 +228,7 @@ public class CadastrarFuncionarios extends JFrame {
 		lblServicos.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Principal Principal = new Principal(isAdmin);
+				Principal Principal = new Principal(isAdmin, nomeUsuario);
 				Principal.setVisible(true);
 				dispose(); 
 			}
@@ -238,7 +250,7 @@ public class CadastrarFuncionarios extends JFrame {
 		lblCadastrarServicos.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				CadastroServicos CadastroServicos = new CadastroServicos(isAdmin);
+				CadastroServicos CadastroServicos = new CadastroServicos(isAdmin, nomeUsuario);
 				CadastroServicos.setVisible(true);
 				dispose();
 			}
@@ -258,24 +270,102 @@ public class CadastrarFuncionarios extends JFrame {
 		lblCadastrarFuncionario.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		lblCadastrarFuncionario.setForeground(SystemColor.text);
 		lblCadastrarFuncionario.setHorizontalAlignment(SwingConstants.CENTER);
+        lblCadastrarFuncionario.addMouseListener(new MouseAdapter() {
+            @Override
+             public void mouseClicked(MouseEvent e) {
+                JOptionPane.showMessageDialog(null, "Você já esta na tela de cadastro de usuários");
+             }
+            @Override
+             public void mouseEntered(MouseEvent e) {
+               lblCadastrarFuncionario.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+            	lblCadastrarFuncionario.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            }
+         });
+		JLabel lblFuncionarios = new JLabel("Funcionarios");
+		lblFuncionarios.setForeground(SystemColor.text);
+		lblFuncionarios.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		lblFuncionarios.setBounds(1193, 87, 159, 42);
+		contentPane.add(lblFuncionarios);
 		if (isAdmin) {
-            lblCadastrarFuncionario.setVisible(true);
-            lblCadastrarFuncionario.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    JOptionPane.showMessageDialog(null, "Você já esta na tela de cadastro de usuários");
-                }
-                @Override
-            	public void mouseEntered(MouseEvent e) {
-                	lblCadastrarFuncionario.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            	}
-            	@Override
-            	public void mouseExited(MouseEvent e) {
-            		lblCadastrarFuncionario.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-            	}
-            });
-        } else {
-            lblCadastrarFuncionario.setVisible(false);
-        }
+			lblFuncionarios.setVisible(true);
+			lblFuncionarios.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					Funcionarios Funcionarios = new Funcionarios(isAdmin, nomeUsuario);
+					Funcionarios.setVisible(true);
+					dispose();
+				}
+				@Override
+				public void mouseEntered(MouseEvent e) {
+					lblFuncionarios.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				}
+				@Override
+				public void mouseExited(MouseEvent e) {
+					lblFuncionarios.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+				}
+			});
+		 } else {
+			 lblFuncionarios.setVisible(false);
+	        }
 	}
+	 private void cadastrarFuncionario() {
+		 String nomeFuncionario = txtFuncionario.getText();
+		    String login = txtLogin.getText();
+		    String senha = txtSenha.getText();
+		    String confirmarSenha = txtConSenha.getText();
+
+		    if (!senha.equals(confirmarSenha)) {
+		        JOptionPane.showMessageDialog(null, "As senhas não coincidem!");
+		        return;
+		    }
+
+		    ConexaoBanco dao = new ConexaoBanco();
+		    Connection con = null;
+
+		    try {
+		        con = dao.conectar();
+
+		        // Verificar se o funcionário existe na tabela usuarios
+		        String sql = "SELECT id_user FROM usuarios WHERE nome = ?";
+		        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+		            stmt.setString(1, nomeFuncionario);
+		            try (ResultSet rs = stmt.executeQuery()) {
+		                if (rs.next()) {
+		                    int idUser = rs.getInt("id_user");
+
+		                    // Inserir as credenciais do funcionário na tabela credenciais_usuarios
+		                    String insertSql = "INSERT INTO credenciais_usuarios (id_user, login, senha, ultimo_login) VALUES (?, ?, ?, NOW())";
+		                    try (PreparedStatement insertStmt = con.prepareStatement(insertSql)) {
+		                        insertStmt.setInt(1, idUser);
+		                        insertStmt.setString(2, login);
+		                        insertStmt.setString(3, senha);
+
+		                        int rowsAffected = insertStmt.executeUpdate();
+
+		                        if (rowsAffected > 0) {
+		                            JOptionPane.showMessageDialog(null, "Funcionário cadastrado com sucesso!");
+		                        } else {
+		                            JOptionPane.showMessageDialog(null, "Erro ao cadastrar funcionário!");
+		                        }
+		                    }
+		                } else {
+		                    JOptionPane.showMessageDialog(null, "Funcionário não encontrado na tabela de usuários!");
+		                }
+		            }
+		        }
+
+		    } catch (Exception ex) {
+		        ex.printStackTrace();
+		        JOptionPane.showMessageDialog(null, "Erro ao conectar com o banco de dados!");
+		    } finally {
+		        try {
+		            if (con != null) con.close();
+		        } catch (Exception ex) {
+		            ex.printStackTrace();
+		        }
+		    }
+	    }
 }

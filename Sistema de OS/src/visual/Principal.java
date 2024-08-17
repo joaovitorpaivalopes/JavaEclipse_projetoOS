@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,12 +12,18 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +39,6 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import conecsao.ConexaoBanco;
-import javax.swing.JComboBox;
 
 
 public class Principal extends JFrame {
@@ -46,6 +52,8 @@ public class Principal extends JFrame {
 	private JTextArea descricaoArea;
 	private JComboBox<String> situacaoComboBox;
 	private List<OrdemServico> ordensServico;
+    private String nomeUsuario;
+
 	
 	
 	private class OrdemServico {
@@ -81,7 +89,8 @@ public class Principal extends JFrame {
 					ConexaoBanco dao = new ConexaoBanco();
 	                int userId = 1; // Exemplo de ID do usuário logado
 	                boolean isAdmin = dao.isAdmin(userId);
-					Principal frame = new Principal(isAdmin);
+                    String nomeUsuario = dao.getNomeUsuario(userId); 
+					Principal frame = new Principal(isAdmin, nomeUsuario);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -94,8 +103,10 @@ public class Principal extends JFrame {
 	 * Create the frame.
 	 */
 	
-	public Principal(boolean isAdmin) {
+	public Principal(boolean isAdmin, String nomeUsuario) {
         this.isAdmin = isAdmin;
+        this.nomeUsuario = nomeUsuario; 
+
         Design();
     }
 	
@@ -122,7 +133,7 @@ public class Principal extends JFrame {
         panel_1.setLayout(null);
         contentPane.add(panel_1);
         
-        JLabel lblUsuario = new JLabel("Nome Usuario");
+        JLabel lblUsuario = new JLabel(nomeUsuario);
         lblUsuario.setFont(new Font("Tahoma", Font.PLAIN, 20));
         lblUsuario.setForeground(SystemColor.text);
         lblUsuario.setBounds(1135, 11, 217, 42);
@@ -161,7 +172,7 @@ public class Principal extends JFrame {
 		lblCadastrarCliente.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				CadastroClientes CadastroClientes = new CadastroClientes(isAdmin);
+				CadastroClientes CadastroClientes = new CadastroClientes(isAdmin, nomeUsuario);
 				CadastroClientes.setVisible(true);
 				dispose(); 
 			}
@@ -204,7 +215,7 @@ public class Principal extends JFrame {
 		lblCadastrarServicos.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				CadastroServicos CadastroServicos = new CadastroServicos(isAdmin);
+				CadastroServicos CadastroServicos = new CadastroServicos(isAdmin, nomeUsuario);
 				CadastroServicos.setVisible(true);
 				dispose();
 			}
@@ -229,7 +240,7 @@ public class Principal extends JFrame {
             lblCadastrarFuncionario.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                	CadastrarFuncionarios CadastrarFuncionarios = new CadastrarFuncionarios(isAdmin);
+                	CadastrarFuncionarios CadastrarFuncionarios = new CadastrarFuncionarios(isAdmin, nomeUsuario);
                 	CadastrarFuncionarios.setVisible(true);
     				dispose();   
                 }
@@ -245,6 +256,32 @@ public class Principal extends JFrame {
         } else {
             lblCadastrarFuncionario.setVisible(false);
         }
+		JLabel lblFuncionarios = new JLabel("Funcionarios");
+		lblFuncionarios.setForeground(SystemColor.text);
+		lblFuncionarios.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		lblFuncionarios.setBounds(1193, 87, 159, 42);
+		contentPane.add(lblFuncionarios);
+		if (isAdmin) {
+			lblFuncionarios.setVisible(true);
+			lblFuncionarios.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					Funcionarios Funcionarios = new Funcionarios(isAdmin, nomeUsuario);
+					Funcionarios.setVisible(true);
+					dispose();
+				}
+				@Override
+				public void mouseEntered(MouseEvent e) {
+					lblFuncionarios.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				}
+				@Override
+				public void mouseExited(MouseEvent e) {
+					lblFuncionarios.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+				}
+			});
+		 } else {
+			 lblFuncionarios.setVisible(false);
+		 }
 		
 		comboBox = new JComboBox<>();
 		comboBox.setBounds(145, 167, 945, 30);
@@ -263,6 +300,8 @@ public class Principal extends JFrame {
 		descricaoArea = new JTextArea();
 		descricaoArea.setFont(new Font("Monospaced", Font.PLAIN, 17));
 		descricaoArea.setBounds(145, 345, 379, 193);
+		descricaoArea.setLineWrap(true); // Quebra automática de linha
+		descricaoArea.setWrapStyleWord(true); // Quebra entre palavras
 		contentPane.add(descricaoArea);
 
 		situacaoComboBox = new JComboBox<>();
@@ -295,6 +334,8 @@ public class Principal extends JFrame {
 		lblNewLabel_1.setFont(new Font("Tahoma", Font.PLAIN, 18));
 		lblNewLabel_1.setBounds(145, 311, 189, 28);
 		contentPane.add(lblNewLabel_1);
+		
+		
 		
 		JLabel lblNewLabel_2 = new JLabel("Situação do Serviço:");
 		lblNewLabel_2.setForeground(SystemColor.text);
@@ -434,13 +475,68 @@ public class Principal extends JFrame {
 	}
 
 	private void imprimirOS() {
-		// Implementar a lógica de impressão
-		JOptionPane.showMessageDialog(this, "Função de impressão não implementada.");
-	}
+        if (comboBox.getSelectedIndex() <= 0) {
+            JOptionPane.showMessageDialog(this, "Selecione uma Ordem de Serviço para imprimir.");
+            return;
+        }
+
+        OrdemServico os = ordensServico.get(comboBox.getSelectedIndex() - 1);
+        StringBuilder conteudoOS = new StringBuilder();
+        conteudoOS.append("Ordem de Serviço\n\n");
+        conteudoOS.append("ID: ").append(os.id).append("\n");
+        conteudoOS.append("Cliente: ").append(os.nomeCliente).append("\n");
+        conteudoOS.append("Data de Criação: ").append(os.dataCriacao).append("\n");
+        conteudoOS.append("Situação: ").append(os.situacao).append("\n");
+        conteudoOS.append("Tipo: ").append(os.tipoOs).append("\n");
+        conteudoOS.append("Descrição: ").append(os.descricao).append("\n");
+
+        PrinterJob job = PrinterJob.getPrinterJob();
+        job.setPrintable(new Printable() {
+            @Override
+            public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
+                if (pageIndex > 0) {
+                    return Printable.NO_SUCH_PAGE;
+                }
+                graphics.drawString(conteudoOS.toString(), 100, 100);
+                return Printable.PAGE_EXISTS;
+            }
+        });
+
+        boolean doPrint = job.printDialog();
+        if (doPrint) {
+            try {
+                job.print();
+            } catch (PrinterException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 	private void gerarRelatorio() {
 		// Implementar a lógica de geração de relatório
-		JOptionPane.showMessageDialog(this, "Função de geração de relatório não implementada.");
+		try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/linguagemcomercial", "root", "96692342b1");
+	             PreparedStatement ps = con.prepareStatement(
+	                     "SELECT COUNT(*) AS total FROM ordens_de_servico WHERE MONTH(data_criacao) = ? AND YEAR(data_criacao) = ?")) {
+
+	            LocalDate currentDate = LocalDate.now();
+	            int currentMonth = currentDate.getMonthValue();
+	            int currentYear = currentDate.getYear();
+
+	            ps.setInt(1, currentMonth);
+	            ps.setInt(2, currentYear);
+
+	            ResultSet rs = ps.executeQuery();
+	            if (rs.next()) {
+	                int totalOS = rs.getInt("total");
+	                String relatorio = "Relatório de Ordens de Serviço\n\n";
+	                relatorio += "Mês: " + DateTimeFormatter.ofPattern("MMMM").format(currentDate) + "\n";
+	                relatorio += "Ano: " + currentYear + "\n";
+	                relatorio += "Total de Ordens de Serviço: " + totalOS + "\n";
+	                JOptionPane.showMessageDialog(this, relatorio);
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
 	}
 		
 		

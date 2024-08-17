@@ -7,11 +7,15 @@ import java.awt.Font;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -23,8 +27,6 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import conecsao.ConexaoBanco;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class SistemaParaOs extends JFrame {
 	
@@ -44,9 +46,13 @@ public class SistemaParaOs extends JFrame {
 		String sql = "select * from credenciais_usuarios where login=? and senha =?";
 		//preparando a consulta ao banco com as caixas de texto
 		//? é substituido pelo conteudo das caixas de texto
+		Date dataLogin =  new Date();
+		Timestamp timestamp = new Timestamp(dataLogin.getTime());
+	    Connection con = null; // Inicialize aqui para que possa ser usada em todo o método
+
 		
 		try {
-			Connection con = dao.conectar();
+			con = dao.conectar();
 			pst = con.prepareStatement(sql);
 			pst.setString(1, txtUsuario.getText());
 			pst.setString(2, new String(txtSenha.getPassword()));
@@ -55,12 +61,20 @@ public class SistemaParaOs extends JFrame {
 			//se existir
 			if (rs.next()) {
 				int userId = rs.getInt("id_user");
-	            boolean isAdmin = dao.isAdmin(userId);
 				
-				Principal principal = new Principal(isAdmin);
+				String sqlNovoLogin = "UPDATE credenciais_usuarios SET ultimo_login = ? WHERE id_user = ?";
+	            PreparedStatement pstUpdate = con.prepareStatement(sqlNovoLogin);
+				pstUpdate.setTimestamp(1, timestamp);
+				pstUpdate.setInt(2, userId);
+				pstUpdate.executeUpdate();
+				pstUpdate.close();
+				
+	            boolean isAdmin = dao.isAdmin(userId);
+                String nomeUsuario = dao.getNomeUsuario(userId); 
+				
+				Principal principal = new Principal(isAdmin, nomeUsuario);
 				principal.setVisible(true);
 				this.dispose();
-				con.close();
 				
 			} else { //se não 
 				JOptionPane.showMessageDialog(null, "Usuario e/ou senha inválido");
@@ -72,7 +86,7 @@ public class SistemaParaOs extends JFrame {
 	        try {
 	            if (rs != null) rs.close();
 	            if (pst != null) pst.close();
-	            // Não feche a conexão aqui, a menos que seja necessário
+	            if (con != null) con.close(); // Feche a conexão aqui
 	        } catch (Exception e) {
 	            JOptionPane.showMessageDialog(null, e);
 	        }

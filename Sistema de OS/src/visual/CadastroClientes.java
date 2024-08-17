@@ -29,6 +29,8 @@ public class CadastroClientes extends JFrame {
 	private boolean isAdmin;
 	private JTextField textField_1;
 	private JTextField textField_2;
+    private String nomeUsuario;
+
 
 	/**
 	 * Launch the application.
@@ -40,7 +42,8 @@ public class CadastroClientes extends JFrame {
 					ConexaoBanco dao = new ConexaoBanco();
 	                int userId = 1; // Exemplo de ID do usuário logado
 	                boolean isAdmin = dao.isAdmin(userId);
-					CadastroClientes frame = new CadastroClientes(isAdmin);
+	                String nomeUsuario = dao.getNomeUsuario(userId); 
+					CadastroClientes frame = new CadastroClientes(isAdmin, nomeUsuario);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -49,8 +52,10 @@ public class CadastroClientes extends JFrame {
 		});
 	}
 
-	public CadastroClientes(boolean isAdmin) {
+	public CadastroClientes(boolean isAdmin, String nomeUsuario) {
         this.isAdmin = isAdmin;
+        this.nomeUsuario = nomeUsuario; 
+
         Design();
     }
 	
@@ -90,7 +95,7 @@ public class CadastroClientes extends JFrame {
 
         contentPane.add(panel_1);
         
-        JLabel lblUsuario = new JLabel("Nome Usuario");
+        JLabel lblUsuario = new JLabel(nomeUsuario);
         lblUsuario.setFont(new Font("Tahoma", Font.PLAIN, 20));
         lblUsuario.setForeground(SystemColor.text);
         lblUsuario.setBounds(1135, 11, 217, 42);
@@ -122,7 +127,12 @@ public class CadastroClientes extends JFrame {
         
         
         JButton btnCadastrar = new JButton("Cadastrar");
-        btnCadastrar.addMouseListener(new MouseAdapter() {
+        btnCadastrar.setForeground(SystemColor.text);
+        btnCadastrar.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        btnCadastrar.setBounds(195, 390, 246, 49);
+        btnCadastrar.setBackground(new Color(107, 132, 142));
+		panel.add(btnCadastrar);
+		btnCadastrar.addMouseListener(new MouseAdapter() {
         	@Override
         	public void mouseEntered(MouseEvent e) {
         		btnCadastrar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -131,12 +141,29 @@ public class CadastroClientes extends JFrame {
         	public void mouseExited(MouseEvent e) {
         		btnCadastrar.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         	}
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				String nome = textField.getText();
+		        String endereco = textField_1.getText();
+		        String telefone = textField_2.getText();
+
+		        if (nome.isEmpty() || endereco.isEmpty() || telefone.isEmpty()) {
+		            JOptionPane.showMessageDialog(null, "Por favor, preencha todos os campos.");
+		        } else {
+		            ConexaoBanco dao = new ConexaoBanco();
+		            boolean sucesso = dao.cadastrarCliente(nome, endereco, telefone);
+
+		            if (sucesso) {
+		                JOptionPane.showMessageDialog(null, "Cliente cadastrado com sucesso!");
+		                textField.setText("");
+		                textField_1.setText("");
+		                textField_2.setText("");
+		            } else {
+		                JOptionPane.showMessageDialog(null, "Erro ao cadastrar cliente.");
+		            }
+		        }
+			}
         });
-        btnCadastrar.setForeground(SystemColor.text);
-        btnCadastrar.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        btnCadastrar.setBounds(195, 390, 246, 49);
-        btnCadastrar.setBackground(new Color(107, 132, 142));
-		panel.add(btnCadastrar);
 		
 		textField = new JTextField();
 		textField.setFont(new Font("Tahoma", Font.PLAIN, 18));
@@ -203,7 +230,7 @@ public class CadastroClientes extends JFrame {
 		lblServicos.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Principal Principal = new Principal(isAdmin);
+				Principal Principal = new Principal(isAdmin, nomeUsuario);
 				Principal.setVisible(true);
 				dispose(); 
 			}
@@ -225,7 +252,7 @@ public class CadastroClientes extends JFrame {
 		lblCadastrarServicos.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				CadastroServicos CadastroServicos = new CadastroServicos(isAdmin);
+				CadastroServicos CadastroServicos = new CadastroServicos(isAdmin, nomeUsuario);
 				CadastroServicos.setVisible(true);
 				dispose();
 			}
@@ -250,7 +277,7 @@ public class CadastroClientes extends JFrame {
             lblCadastrarFuncionario.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                	CadastrarFuncionarios CadastrarFuncionarios = new CadastrarFuncionarios(isAdmin);
+                	CadastrarFuncionarios CadastrarFuncionarios = new CadastrarFuncionarios(isAdmin, nomeUsuario);
                 	CadastrarFuncionarios.setVisible(true);
     				dispose();   
                 }
@@ -266,6 +293,32 @@ public class CadastroClientes extends JFrame {
         } else {
             lblCadastrarFuncionario.setVisible(false);
         }
+		JLabel lblFuncionarios = new JLabel("Funcionarios");
+		lblFuncionarios.setForeground(SystemColor.text);
+		lblFuncionarios.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		lblFuncionarios.setBounds(1193, 87, 159, 42);
+		contentPane.add(lblFuncionarios);
+		if (isAdmin) {
+			lblFuncionarios.setVisible(true);
+			lblFuncionarios.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					Funcionarios Funcionarios = new Funcionarios(isAdmin, nomeUsuario);
+					Funcionarios.setVisible(true);
+					dispose();
+				}
+				@Override
+				public void mouseEntered(MouseEvent e) {
+					lblFuncionarios.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				}
+				@Override
+				public void mouseExited(MouseEvent e) {
+					lblFuncionarios.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+				}
+			});
+		 } else {
+			 lblFuncionarios.setVisible(false);
+	        }
 		
     }
 }
