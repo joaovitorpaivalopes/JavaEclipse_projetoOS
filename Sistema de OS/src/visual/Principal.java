@@ -186,17 +186,13 @@ public class Principal extends JFrame {
         	}
 		});
 		
-		JLabel lblServicos = new JLabel("Serviços");
+		JLabel lblServicos = new JLabel("*Serviços");
 		lblServicos.setForeground(SystemColor.text);
 		lblServicos.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		lblServicos.setBounds(452, 87, 159, 42);
 		contentPane.add(lblServicos);
 		lblServicos.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-                JOptionPane.showMessageDialog(null, "Você já esta na tela de Serviços");
-
-			}
+			
 			@Override
         	public void mouseEntered(MouseEvent e) {
 				lblServicos.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -423,24 +419,42 @@ public class Principal extends JFrame {
 	}
 
 	private void exibirDetalhesOrdemServico(int index) {
-		OrdemServico os = ordensServico.get(index);
-		tipoOsField.setText(os.tipoOs);
-		descricaoArea.setText(os.descricao);
-		situacaoComboBox.removeAllItems();
-		situacaoComboBox.addItem(os.situacao);
-		try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/linguagemcomercial", "root", "96692342b1");
-				Statement stmt = con.createStatement();
-				ResultSet rs = stmt.executeQuery("SELECT descricao FROM situacoes_ordem_servico")) {
+		String selectedOsString = (String) comboBox.getSelectedItem();
+	    if (selectedOsString == null || selectedOsString.equals("#ID OS Nome do Cliente Data de Criação Situação")) {
+	        return; // Ignora se o item selecionado não for uma OS válida
+	    }
 
-			while (rs.next()) {
-				String descricao = rs.getString("descricao");
-				if (!descricao.equals(os.situacao)) {
-					situacaoComboBox.addItem(descricao);
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+	    OrdemServico osSelecionada = null;
+
+	    // Procura a Ordem de Serviço correspondente no ArrayList
+	    for (OrdemServico os : ordensServico) {
+	        if (os.toString().equals(selectedOsString)) {
+	            osSelecionada = os;
+	            break;
+	        }
+	    }
+
+	    // Se encontrou a OS, exibe os detalhes
+	    if (osSelecionada != null) {
+	        tipoOsField.setText(osSelecionada.tipoOs);
+	        descricaoArea.setText(osSelecionada.descricao);
+	        situacaoComboBox.removeAllItems();
+	        situacaoComboBox.addItem(osSelecionada.situacao);
+
+	        // Preenche o comboBox de situação com as demais opções
+	        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/linguagemcomercial", "root", "96692342b1");
+	             Statement stmt = con.createStatement();
+	             ResultSet rs = stmt.executeQuery("SELECT descricao FROM situacoes_ordem_servico")) {
+
+	            while (rs.next()) {
+	                String descricao = rs.getString("descricao");
+	                if (!descricao.equals(osSelecionada.situacao)) {
+	                    situacaoComboBox.addItem(descricao);
+	                }
+	            }
+	        } catch (SQLException e) {
+	        	}
+	        }
 	}
 
 	private void atualizarSituacaoOrdemServico(int index) {

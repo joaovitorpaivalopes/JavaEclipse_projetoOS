@@ -264,17 +264,14 @@ public class CadastrarFuncionarios extends JFrame {
         	}
 		});
 		
-		JLabel lblCadastrarFuncionario = new JLabel("Cadastrar Funcionario");
-		lblCadastrarFuncionario.setBounds(160, 87, 201, 42);
+		JLabel lblCadastrarFuncionario = new JLabel("*Cadastrar Funcionario");
+		lblCadastrarFuncionario.setBounds(160, 87, 211, 42);
 		contentPane.add(lblCadastrarFuncionario);
 		lblCadastrarFuncionario.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		lblCadastrarFuncionario.setForeground(SystemColor.text);
 		lblCadastrarFuncionario.setHorizontalAlignment(SwingConstants.CENTER);
         lblCadastrarFuncionario.addMouseListener(new MouseAdapter() {
-            @Override
-             public void mouseClicked(MouseEvent e) {
-                JOptionPane.showMessageDialog(null, "Você já esta na tela de cadastro de usuários");
-             }
+            
             @Override
              public void mouseEntered(MouseEvent e) {
                lblCadastrarFuncionario.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

@@ -238,13 +238,9 @@ public class CadastroServicos extends JFrame {
 		lblServicos.setBounds(452, 87, 159, 42);
 		contentPane.add(lblServicos);
 		
-		JLabel lblCadastrarServicos = new JLabel("Cadastrar Serviço");
+		JLabel lblCadastrarServicos = new JLabel("*Cadastrar Serviço");
 		lblCadastrarServicos.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-                JOptionPane.showMessageDialog(null, "Você já esta na tela de Cadastrar Serviços");
-
-			}
+			
 			@Override
         	public void mouseEntered(MouseEvent e) {
 				lblCadastrarServicos.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -256,7 +252,7 @@ public class CadastroServicos extends JFrame {
 		});
 		lblCadastrarServicos.setForeground(SystemColor.text);
 		lblCadastrarServicos.setFont(new Font("Tahoma", Font.PLAIN, 20));
-		lblCadastrarServicos.setBounds(931, 87, 159, 42);
+		lblCadastrarServicos.setBounds(931, 87, 177, 42);
 		contentPane.add(lblCadastrarServicos);
 		
 		JLabel lblCadastrarFuncionario = new JLabel("Cadastrar Funcionario");

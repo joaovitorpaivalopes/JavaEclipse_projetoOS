@@ -245,17 +245,13 @@ public class Funcionarios extends JFrame {
             lblCadastrarFuncionario.setVisible(false);
         }
 		
-		JLabel lblFuncionarios = new JLabel("Funcionarios");
+		JLabel lblFuncionarios = new JLabel("*Funcionarios");
 		lblFuncionarios.setForeground(SystemColor.text);
 		lblFuncionarios.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		lblFuncionarios.setBounds(1193, 87, 159, 42);
 		contentPane.add(lblFuncionarios);
 		lblFuncionarios.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-               JOptionPane.showMessageDialog(null, "Você já esta na tela de Funcionarios Cadastrados");
-
-			}
+			
 			@Override
 			public void mouseEntered(MouseEvent e) {
 				lblFuncionarios.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
